@@ -2,7 +2,7 @@ package service
 
 import (
 	"database/sql"
-	"fmt"
+	"errors"
 	"time"
 )
 
@@ -14,20 +14,20 @@ type ReceiptValue struct {
 	}
 }
 
-type receiptResult struct {
-	res        string
-	receipt_id []int64
+type ReceiptResult struct {
+	Res        string
+	Receipt_id []int64
 }
 
-func Pay(db *sql.DB, rowValue ReceiptValue) (receiptResult, error) {
+func Pay(db *sql.DB, rowValue ReceiptValue) (ReceiptResult, error) {
 	datetime := time.Now()
 
-	row := db.QueryRow("SELECT SUM(price) FROM entries WHERE ordier_id = ?", rowValue.OrderID)
+	row := db.QueryRow("SELECT SUM(price) FROM entries WHERE order_id = ?", rowValue.OrderID)
 	var orderPrice float64
 	errScan := row.Scan(&orderPrice)
 
 	if errScan != nil {
-		return receiptResult{}, errScan
+		return ReceiptResult{}, errScan
 	}
 
 	rowPrice := 0.0
@@ -37,18 +37,19 @@ func Pay(db *sql.DB, rowValue ReceiptValue) (receiptResult, error) {
 	}
 
 	if rowPrice != orderPrice {
-		return receiptResult{}, errScan
+		return ReceiptResult{}, errors.New("Enter the total price of the order")
 	}
 
 	var receiptID []int64
-	for i, v := range rowValue.Price {
-		res, errRes := db.Exec("INSERT receipts(order_id, payment, value, accepted_on) VALUES (?,?,?,?)",
+	for _, v := range rowValue.Price {
+		res, errRes := db.Exec("INSERT receiptsss(order_id, payment, value, accepted_on) VALUES (?,?,?,?)",
 			rowValue.OrderID, v.Payment, v.Value, datetime.Format("2006-01-02 15:04:05"))
 		if errRes != nil {
-			fmt.Printf("failed to insert receips table: %s\n", errRes)
+			return ReceiptResult{}, errRes
 		}
-		receiptID[i], _ = res.LastInsertId()
+		id, _ := res.LastInsertId()
+		receiptID = append(receiptID, id)
 	}
 
-	return receiptResult{res: "success", receipt_id: receiptID}, nil
+	return ReceiptResult{Res: "success", Receipt_id: receiptID}, nil
 }

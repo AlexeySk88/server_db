@@ -7,34 +7,38 @@ import (
 
 type OrderValue struct {
 	DistrictId int
-	Price      float32
+	Price      []float64
 }
 
-type orderResult struct {
-	res      string
-	order_id int64
-	entry_id int64
+type OrderResult struct {
+	Res      string
+	Order_id int64
+	Entry_id []int64
 }
 
-func Order(db *sql.DB, rowValue OrderValue) (orderResult, error) {
+func Order(db *sql.DB, rowValue OrderValue) (OrderResult, error) {
 	datetime := time.Now()
-	orderRes, errRes := db.Exec("INSERT orders(district_id, added_on) VALUES (?, ?)",
+	resOrder, errOrder := db.Exec("INSERT orders(district_id, added_on) VALUES (?, ?)",
 		rowValue.DistrictId, datetime.Format("2006-01-02 15:04:05"))
 
-	if errRes != nil {
-		return orderResult{}, errRes
+	if errOrder != nil {
+		return OrderResult{}, errOrder
 	}
 
-	orderID, _ := orderRes.LastInsertId()
+	orderID, _ := resOrder.LastInsertId()
 
-	entryRes, errEntr := db.Exec("INSERT enties(order_id, price, status) VALUES (?, ?)",
-		orderID, rowValue.Price)
+	var entryID []int64
+	for _, v := range rowValue.Price {
+		entryRes, errEntr := db.Exec("INSERT entries(order_id, price) VALUES (?,?)",
+			orderID, v)
 
-	if errEntr != nil {
-		return orderResult{}, errRes
+		if errEntr != nil {
+			return OrderResult{}, errEntr
+		}
+
+		id, _ := entryRes.LastInsertId()
+		entryID = append(entryID, id)
 	}
 
-	entryID, _ := entryRes.LastInsertId()
-
-	return orderResult{res: "success", order_id: orderID, entry_id: entryID}, nil
+	return OrderResult{Res: "success", Order_id: orderID, Entry_id: entryID}, nil
 }

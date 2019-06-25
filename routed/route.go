@@ -13,4 +13,5 @@ func InitRoutes(db *sql.DB) {
 	http.HandleFunc("/order", handleAddOrder(db))
 	http.HandleFunc("/pay", handleAddReceipt(db))
 	http.HandleFunc("/click", handlerClick(db))
+	http.HandleFunc("/delivered", handlerDelivered(db))
 }

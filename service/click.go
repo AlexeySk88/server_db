@@ -2,19 +2,20 @@ package service
 
 import (
 	"database/sql"
+	"errors"
 )
 
 type ClickValue struct {
 	EntryID int
 }
 
-type clickResult struct {
-	entryID int
-	status  string
+type ClickResult struct {
+	EntryID int
+	Status  string
 }
 
-func Click(db *sql.DB, rowValue ClickValue) (clickResult, error) {
-	_, errRes := db.Exec(`
+func Click(db *sql.DB, rowValue ClickValue) (ClickResult, error) {
+	upRes, errRes := db.Exec(`
 		UPDATE entries AS e1
 		JOIN (
 			SELECT click_id
@@ -25,15 +26,20 @@ func Click(db *sql.DB, rowValue ClickValue) (clickResult, error) {
 		WHERE e1.entry_id = ? AND e1.click_id < 2`,
 		rowValue.EntryID, rowValue.EntryID)
 	if errRes != nil {
-		return clickResult{}, errRes
+		return ClickResult{}, errRes
 	}
 
-	res := clickResult{}
+	id, _ := upRes.RowsAffected()
+	if id == 0 {
+		return ClickResult{}, errors.New("Update data not found")
+	}
+
+	res := ClickResult{}
 	row := db.QueryRow("SELECT entry_id, status FROM entries WHERE entry_id = ?", rowValue.EntryID)
-	errScan := row.Scan(&res.entryID, &res.status)
+	errScan := row.Scan(&res.EntryID, &res.Status)
 
 	if errScan != nil {
-		return clickResult{}, errRes
+		return ClickResult{}, errRes
 	}
 
 	return res, nil
