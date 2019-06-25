@@ -3,6 +3,7 @@ package routed
 import (
 	"database/sql"
 	"encoding/json"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"server_db/service"
@@ -16,7 +17,16 @@ type ErrorRes struct {
 func handleAddOrder(db *sql.DB) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		res.Header().Set("Content-Type", "application/json")
-		reqJSON := []byte(req.FormValue("order"))
+		body, errRead := ioutil.ReadAll(req.Body)
+		if errRead != nil {
+			errorJSON, errMarshal := json.Marshal(ErrorRes{Res: "fail", Report: errRead.Error()})
+			if errMarshal != nil {
+				log.Println("marchal error: ", errMarshal)
+			}
+			res.Write(errorJSON)
+			return
+		}
+		reqJSON := []byte(body)
 		order := service.OrderValue{}
 		errType := json.Unmarshal(reqJSON, &order)
 		if errType != nil {
@@ -48,7 +58,16 @@ func handleAddOrder(db *sql.DB) http.HandlerFunc {
 func handleAddReceipt(db *sql.DB) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		res.Header().Set("Content-Type", "application/json")
-		reqJSON := []byte(req.FormValue("receipt"))
+		body, errRead := ioutil.ReadAll(req.Body)
+		if errRead != nil {
+			errorJSON, errMarshal := json.Marshal(ErrorRes{Res: "fail", Report: errRead.Error()})
+			if errMarshal != nil {
+				log.Println("marchal error: ", errMarshal)
+			}
+			res.Write(errorJSON)
+			return
+		}
+		reqJSON := []byte(body)
 		receipt := service.ReceiptValue{}
 		errType := json.Unmarshal(reqJSON, &receipt)
 		if errType != nil {
@@ -80,7 +99,16 @@ func handleAddReceipt(db *sql.DB) http.HandlerFunc {
 func handlerClick(db *sql.DB) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		res.Header().Set("Content-Type", "application/json")
-		reqJSON := []byte(req.FormValue("click"))
+		body, errRead := ioutil.ReadAll(req.Body)
+		if errRead != nil {
+			errorJSON, errMarshal := json.Marshal(ErrorRes{Res: "fail", Report: errRead.Error()})
+			if errMarshal != nil {
+				log.Println("marchal error: ", errMarshal)
+			}
+			res.Write(errorJSON)
+			return
+		}
+		reqJSON := []byte(body)
 		click := service.ClickValue{}
 		errType := json.Unmarshal(reqJSON, &click)
 		if errType != nil {
@@ -112,7 +140,17 @@ func handlerClick(db *sql.DB) http.HandlerFunc {
 func handlerDelivered(db *sql.DB) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		res.Header().Set("Content-Type", "application/json")
-		reqJSON := []byte(req.FormValue("delivered"))
+
+		body, errRead := ioutil.ReadAll(req.Body)
+		if errRead != nil {
+			errorJSON, errMarshal := json.Marshal(ErrorRes{Res: "fail", Report: errRead.Error()})
+			if errMarshal != nil {
+				log.Println("marchal error: ", errMarshal)
+			}
+			res.Write(errorJSON)
+			return
+		}
+		reqJSON := []byte(body)
 		deliv := service.DeliveryValue{}
 		errType := json.Unmarshal(reqJSON, &deliv)
 		if errType != nil {

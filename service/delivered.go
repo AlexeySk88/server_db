@@ -21,7 +21,7 @@ func Delivered(db *sql.DB, rowValue DeliveryValue) (DeliveryResult, error) {
 		`UPDATE entries AS e 
 		JOIN orders AS o ON o.order_id = e.order_id 
 		SET status='taken', closed=NOW()
-		WHERE e.order_id = ?`,
+		WHERE e.order_id = ? AND status != 'taken'`,
 		rowValue.OrderID)
 	if errRes != nil {
 		return DeliveryResult{}, errRes
