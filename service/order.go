@@ -2,6 +2,7 @@ package service
 
 import (
 	"database/sql"
+	"log"
 	"time"
 )
 
@@ -25,7 +26,11 @@ func Order(db *sql.DB, rowValue OrderValue) (OrderResult, error) {
 		return OrderResult{}, errOrder
 	}
 
-	orderID, _ := resOrder.LastInsertId()
+	orderID, err := resOrder.LastInsertId()
+
+	if err != nil {
+		log.Println("order error :", err)
+	}
 
 	var entryID []int64
 	for _, v := range rowValue.Price {

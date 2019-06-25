@@ -3,6 +3,7 @@ package service
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 )
 
@@ -27,7 +28,7 @@ func Pay(db *sql.DB, rowValue ReceiptValue) (ReceiptResult, error) {
 	errScan := row.Scan(&orderPrice)
 
 	if errScan != nil {
-		return ReceiptResult{}, errScan
+		return ReceiptResult{}, errors.New(fmt.Sprint("not found order with order_id=", rowValue.OrderID))
 	}
 
 	rowPrice := 0.0
@@ -42,7 +43,7 @@ func Pay(db *sql.DB, rowValue ReceiptValue) (ReceiptResult, error) {
 
 	var receiptID []int64
 	for _, v := range rowValue.Price {
-		res, errRes := db.Exec("INSERT receiptsss(order_id, payment, value, accepted_on) VALUES (?,?,?,?)",
+		res, errRes := db.Exec("INSERT receipts(order_id, payment, value, accepted_on) VALUES (?,?,?,?)",
 			rowValue.OrderID, v.Payment, v.Value, datetime.Format("2006-01-02 15:04:05"))
 		if errRes != nil {
 			return ReceiptResult{}, errRes

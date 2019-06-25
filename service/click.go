@@ -3,6 +3,7 @@ package service
 import (
 	"database/sql"
 	"errors"
+	"log"
 )
 
 type ClickValue struct {
@@ -29,8 +30,11 @@ func Click(db *sql.DB, rowValue ClickValue) (ClickResult, error) {
 		return ClickResult{}, errRes
 	}
 
-	id, _ := upRes.RowsAffected()
-	if id == 0 {
+	count, err := upRes.RowsAffected()
+	if err != nil {
+		log.Println("click error: ", err)
+	}
+	if count == 0 {
 		return ClickResult{}, errors.New("Update data not found")
 	}
 
